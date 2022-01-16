@@ -24,14 +24,13 @@ class SpaceSavingCounter():
     def count(self):
         self.k = 1 / self.epsilon
 
-        self.word_counter = defaultdict(int)
+        self.word_counter = {}
 
         file = open_file(self.fname, 'r')
         text = file.read()
         file.close
 
         tokens = re.sub("[^0-9a-zA-Z]+"," ", text).lower().split()
-
 
         for word in tokens:
             if word in self.word_counter:

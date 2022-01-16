@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 
 
 class Test():
-    def __init__(self, fname="datasets/it_book.txt", rep=1000, k=10):
+    def __init__(self, fname="datasets/it_book.txt", epsilon=10, rep=1000):
         self.fname = fname
         self.rep = rep
-        self.k = k
+        self.k = 1 / epsilon
 
         self.run_test()
 
@@ -40,7 +40,6 @@ class Test():
             total_time += time.time() - tic
 
             if not exact_counter:
-                counter.estimate_events()
                 total_countings += sum(counter.letter_occur.values())
                 total_alp_size += len(counter.letter_occur)
                 total_estimated_events += sum(counter.estimated_letter_occur.values())
