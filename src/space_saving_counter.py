@@ -22,7 +22,7 @@ class SpaceSavingCounter():
        splitting words by spaces and removing stopwords
     '''
     def count(self):
-        self.k = 1 / self.epsilon
+        self.k = int(1 / self.epsilon)
 
         self.word_counter = {}
 

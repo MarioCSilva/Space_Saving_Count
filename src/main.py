@@ -12,8 +12,7 @@ class Main:
     def usage(self):
         print("Usage: python3 main.py\
             \n\t-f <File Name for Counting Words: str>\
-            \n\t-e <Epsilon Value for Space Saving Count: int>\
-            \n\t-r <Number of Repetitions for Testing: int>")
+            \n\t-e <Epsilon Value for Space Saving Count: float>")
 
         sys.exit()
 
@@ -25,8 +24,7 @@ class Main:
         )
         arg_parser.add_argument('-help', action='store_true')
         arg_parser.add_argument('-file_name', nargs=1, type=str, default=['../datasets/en_bible.txt'])
-        arg_parser.add_argument('-epsilon', nargs=1, type=int, default=[0.01])
-        arg_parser.add_argument('-repetitions', nargs=1, type=int, default=[10])
+        arg_parser.add_argument('-epsilon', nargs=1, type=float, default=[0.05])
 
         try:
             args = arg_parser.parse_args()
@@ -36,7 +34,7 @@ class Main:
         if args.help:
             self.usage()
 
-        return args.file_name[0], args.epsilon[0], args.repetitions[0]
+        return args.file_name[0], args.epsilon[0]
 
 
 if __name__ == "__main__":
