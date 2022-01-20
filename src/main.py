@@ -24,7 +24,7 @@ class Main:
         )
         arg_parser.add_argument('-help', action='store_true')
         arg_parser.add_argument('-file_name', nargs=1, type=str, default=['../datasets/en_bible.txt'])
-        arg_parser.add_argument('-epsilon', nargs=1, type=float, default=[0.05])
+        arg_parser.add_argument('-epsilons', nargs=1, type=float, default=[0.0001, 0.0002, 0.0005, 0.001, 0.05, 0.1, 0.5])
 
         try:
             args = arg_parser.parse_args()
@@ -34,7 +34,7 @@ class Main:
         if args.help:
             self.usage()
 
-        return args.file_name[0], args.epsilon[0]
+        return args.file_name[0], args.epsilons
 
 
 if __name__ == "__main__":

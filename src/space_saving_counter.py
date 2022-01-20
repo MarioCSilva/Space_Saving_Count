@@ -1,20 +1,16 @@
-from collections import defaultdict
 import re
 from utils import open_file
-from random import random, seed
 
 
 class SpaceSavingCounter():
     def __init__(self, fname="../datasets/en_bible.txt", epsilon=0.01):
-        seed(93430)
-
         self.fname = fname
 
         self.epsilon = epsilon
 
 
     def __str__(self):
-        return f"Space Saving Counter with Epsilon {self.epsilon}"
+        return "Space Saving Counter"
 
 
     '''Reads the whole file
@@ -45,6 +41,6 @@ class SpaceSavingCounter():
             self.word_counter[word] = self.word_counter.pop(smallest_word_counter) + 1
 
 
-    def top_k_words(self, k=10):
+    def sort_words(self):
         return {word: occur for word, occur in \
-            sorted(self.word_counter.items(), key=lambda x: x[1], reverse=True)[:k]}
+            sorted(self.word_counter.items(), key=lambda x: x[1], reverse=True)}

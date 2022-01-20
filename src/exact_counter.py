@@ -30,6 +30,6 @@ class ExactCounter():
             self.word_counter[word] += 1
         
 
-    def top_k_words(self, k=10):
+    def sort_words(self):
         return {word: occur for word, occur in \
-            sorted(self.word_counter.items(), key=lambda x: x[1], reverse=True)[:k]}
+            sorted(self.word_counter.items(), key=lambda x: x[1], reverse=True)}

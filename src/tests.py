@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 
 
 class Test():
-    def __init__(self, fname="datasets/it_book.txt", epsilons=[1, 0.5, 0.1, 0.05, 0.01, 0.005, 0.001]):
+    def __init__(self, fname="datasets/it_book.txt", epsilons=[0.0001, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5]):
         self.fname = fname
-        self.epsilons = epsilons
+        self.epsilons = sorted(epsilons, reverse=True)
 
         self.run_test()
 
@@ -27,124 +27,94 @@ class Test():
     def get_stats(self, counter, exact_counter=False):
         print(f"{counter}\n")
 
-        plot_data = [[], [], []]
+        plot_data = [[], [], [], [], []]
+        headers = ["Measure"]
+        data = [["Time"], ["Total Words"], ["Events"], ["Mean"],\
+            ["Minimum"], ["Maximum"]]
 
         if not exact_counter:
+            data.extend([["Accuracy"], ["Precision"], ["Average Precision"]])
             for epsilon in self.epsilons:
                 counter.epsilon = epsilon
                 tic = time.time()
                 counter.count()
-                exec_time = round(time.time() - tic, 3)
-                
+                exec_time = round(time.time() - tic, 2)
+
                 total_events = sum(counter.word_counter.values())
                 total_words = len(counter.word_counter)
-                assert total_words == counter.k
                 min_events = min(counter.word_counter.values())
                 max_events = max(counter.word_counter.values())
                 mean = calc_mean(counter.word_counter.values())
 
-                data = [["Counting Time (s)", avg_time], ["Alphabet Size"], ["Events"], ["Mean"], ["Minimum"], ["Maximum"]]
-                headers = ["Measure", "Value"]
-                
+                headers.append(f"Epsilon {epsilon}")
+                data[0].append(exec_time)
+                data[1].append(total_words)
+                data[2].append(total_events)
+                data[3].append(mean)
+                data[4].append(min_events)
+                data[5].append(max_events)
+
                 plot_data[0].append(epsilon)
                 plot_data[1].append(exec_time)
-                plot_data[2].append(exec_time)
 
+                relative_precision, right_position_words, TP = 0, 0, 0
+                exact_top_k_words = list(self.exact_top_k_words.keys())
+                top_words = counter.sort_words()
+                for i, word in enumerate(top_words):
+                    if word in self.exact_top_k_words:
+                        TP += 1
+                    if word == exact_top_k_words[i]:
+                        right_position_words += 1
+                        relative_precision += right_position_words / (i + 1) 
+                avg_relative_precision = round(relative_precision / total_words * 100, 2)
+                FP = total_words - TP
+                TN = self.total_words - total_words - FP
+                precision = round(TP / total_words * 100, 2)
+                accuracy = round((TP + TN) / self.total_words * 100, 2)
+                # recall not appropriate since it is evaluated top n most frequent words
 
-        if exact_counter:
-            self.exact_word_counter = counter.word_counter
-            self.exact_top_k_words = counter.top_k_words(self.k)
-            self.k = len(self.exact_top_k_words)
-            self.alphabet_size = len(counter.word_counter)
-            self.total_events = total_countings = sum(counter.word_counter.values())
-            self.mean = mean = calc_mean(counter.word_counter.values())
-            self.min_events = min_events = min(counter.word_counter.values())
-            self.max_events = max_events = max(counter.word_counter.values())
-            data[1].append(self.alphabet_size)
-            data[2].append(round(self.total_events, 2))
-            data[3].append(round(self.mean, 2))
-            data[4].append(round(self.min_events, 2))
-            data[5].append(round(self.max_events, 2))
-        else:
-            headers.extend(["Absolute Error", "Relative Error (%)"])
-            headers.extend([["Absolute Error"], ["Relative Error (%)"]])
-            total_alp_size = round(total_alp_size / self.rep, 2)
-            total_countings = round(total_countings / self.rep, 2)
-            total_events = round(total_estimated_events / self.rep, 2)
-            mean = round(total_means / self.rep, 2)
-            min_events = round(total_min_events / self.rep, 2)
-            max_events = round(total_max_events / self.rep, 2)
-            common_top_k_words = most_frequent(total_word_counter, self.k)
-
-            data[0].extend(['-', '-'])
-            data[1].extend([total_alp_size, round(abs(self.alphabet_size - total_alp_size), 2),
-                round(abs(self.alphabet_size - total_alp_size) / self.alphabet_size * 100, 2)])
-            data[2].extend([total_events, round(abs(self.total_events - total_events), 2),
-                round(abs(self.total_events - total_events) / self.total_events * 100, 2)])
-            data[3].extend([mean, round(abs(self.mean - mean), 2),
-                round(abs(self.mean - mean) / self.mean * 100, 2)])
-            data[4].extend([min_events, round(abs(self.min_events - min_events), 2),
-                round(abs(self.min_events - min_events) / self.min_events * 100, 2)])
-            data[5].extend([max_events, round(abs(self.max_events - max_events), 2),
-                round(abs(self.max_events - max_events) / self.max_events * 100, 2)])
-
-        print(f"Results for {self.rep} repetition{'s' if self.rep != 1 else ''}:")
-        print(f"Total Elapsed Time: {round(total_time, 3)} s\nTotal Events Counted: {total_countings}")
-        print("\nAverage Values for a Repetition:")
-        print(tabulate(data, headers=headers))
-
-        print(f"\nTop {self.k} Most Frequent words:")
-        if exact_counter:
-            print(tabulate(self.exact_top_k_words.items(), headers=["word", "Exact Events"]))
-        else:
-            relative_precision, right_position_words = 0, 0
-            exact_top_k_words = list(self.exact_top_k_words.keys())
-
-            headers = ["word", "Min", "Max", "Mean", "Mean Absolute Error", "Mean Relative Error (%)"]
-            data = []
-            for i, word_counter in enumerate(common_top_k_words.items()):
-                word, occur = word_counter
-                mean_occur = calc_mean(occur)
-                abs_error = abs(self.exact_word_counter[word] - mean_occur)
-                rel_error = round(abs_error / self.exact_word_counter[word] * 100, 2)
-                if self.rep > 1:
-                    variance = calc_variance(occur, mean=mean_occur)
-                    std_dvt = sqrt(variance)
-                    headers.extend(["Variance", "Standard Deviation"])
-                    data.append([word, min(occur), max(occur), mean_occur, abs_error, rel_error, variance, std_dvt])
-                else:
-                    data.append([word, min(occur), max(occur), mean_occur, abs_error, rel_error])
-                if word == exact_top_k_words[i]:
-                    right_position_words += 1
-                    relative_precision += right_position_words / (i + 1)
+                data[6].append(accuracy)
+                data[7].append(precision)
+                data[8].append(avg_relative_precision)
+                plot_data[2].append(accuracy)
+                plot_data[3].append(precision)
+                plot_data[4].append(avg_relative_precision)
 
             print(tabulate(data, headers=headers))
-            
-            avg_relative_precision = relative_precision / self.k * 100
-            TP = len([word for word in common_top_k_words.keys() if word in self.exact_top_k_words.keys()])
-            FP = self.k - TP
-            TN = self.alphabet_size - self.k - FP
-            precision = TP / self.k * 100
-            accuracy = (TP + TN) / self.alphabet_size * 100
 
-            # recall not appropriate since it is evaluated top n most frequent words
-            print(f"Accuracy: {accuracy:.2f} %")
-            print(f"Precision: {precision:.2f} %")
-            print(f"Average Precision (relative order): {avg_relative_precision:.2f} %")
-            
-            if self.rep > 1:
-                plt.plot(plot_data[0], plot_data[1], label="Total Events Relative Error")
-                plt.ylabel("Relative Error (%)")
-                plt.xlabel("Repetition")
-                plt.title(counter)
-                plt.legend()
-                plt.show()
+            plt.plot(plot_data[0], plot_data[1], label="Execution Time")
+            plt.ylabel("Time (s)")
+            plt.xlabel("Epsilon")
+            plt.title(counter)
+            plt.legend()
+            plt.show()
 
-                plt.plot(plot_data[0], plot_data[2], label="Mean Relative Error")
-                plt.ylabel("Relative Error (%)")
-                plt.xlabel("Repetition")
-                plt.title(counter)
-                plt.legend()
-                plt.show()
+            plt.plot(plot_data[0], plot_data[2], label="Accuracy (%)")
+            plt.plot(plot_data[0], plot_data[3], label="Precision (%)")
+            plt.plot(plot_data[0], plot_data[4], label="Average Precision (%)")
+            plt.ylabel("Percentage (%)")
+            plt.xlabel("Epsilon")
+            plt.title(counter)
+            plt.legend()
+            plt.show()
+            return
 
-        print("\n")
+        tic = time.time()
+        counter.count()
+        exec_time = round(time.time() - tic, 3)
+        self.exact_top_k_words = counter.sort_words()
+        self.total_words = len(counter.word_counter)
+        total_events = sum(counter.word_counter.values())
+        min_events = min(counter.word_counter.values())
+        max_events = max(counter.word_counter.values())
+        mean = calc_mean(counter.word_counter.values())
+
+        headers.append("Value")
+        data[0].append(exec_time)
+        data[1].append(self.total_words)
+        data[2].append(total_events)
+        data[3].append(mean)
+        data[4].append(min_events)
+        data[5].append(max_events)
+
+        print(f"{tabulate(data, headers=headers)}\n")
