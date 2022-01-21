@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 
 
 class Test():
-    def __init__(self, fname="datasets/it_book.txt", epsilons=[0.0001, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5], k=10):
+    def __init__(self, fname="datasets/it_book.txt", stop_words_fname="./stopwords.txt", epsilons=[0.0002, 0.0005, 0.0008, 0.001, 0.002], k=200):
         self.fname = fname
+        self.stop_words_fname = stop_words_fname
         self.epsilons = sorted(epsilons, reverse=True)
 
         min_k = int(1 / max(epsilons))
@@ -21,7 +22,7 @@ class Test():
 
     def run_test(self):
         exact_counter, space_saving_counter =\
-            ExactCounter(self.fname), SpaceSavingCounter(self.fname)
+            ExactCounter(self.fname, self.stop_words_fname), SpaceSavingCounter(self.fname, self.stop_words_fname)
 
         self.get_stats(exact_counter, exact_counter=True)
         self.get_stats(space_saving_counter)
@@ -89,6 +90,7 @@ class Test():
             plt.plot(plot_data[0], plot_data[1], label="Execution Time")
             plt.ylabel("Time (s)")
             plt.xlabel("Epsilon")
+            plt.xticks(plot_data[0])
             plt.title(counter)
             plt.legend()
             plt.show()
@@ -98,6 +100,7 @@ class Test():
             plt.plot(plot_data[0], plot_data[4], label="Average Precision (%)")
             plt.ylabel("Percentage (%)")
             plt.xlabel("Epsilon")
+            plt.xticks(plot_data[0])
             plt.title(counter)
             plt.legend()
             plt.show()

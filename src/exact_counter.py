@@ -4,10 +4,19 @@ from utils import open_file
 
 
 class ExactCounter():
-    def __init__(self, fname="../datasets/en_bible.txt"):
+    def __init__(self, fname="../datasets/en_bible.txt", stop_words_fname="./stopwords.txt"):
         self.fname = fname
 
-    
+        self.get_stop_words(stop_words_fname)
+
+
+    def get_stop_words(self, stopwords_fname):
+        self.stop_words = set()
+        stop_words_file = open_file(stopwords_fname)
+        for line in stop_words_file:
+            self.stop_words |= set(line.split(","))
+
+
     def __str__(self):
         return "Exact Counter"
 
@@ -21,13 +30,14 @@ class ExactCounter():
         self.word_counter = defaultdict(int)
 
         file = open_file(self.fname, 'r')
-        text = file.read()
+
+        for line in file:
+            tokens = re.sub("[^a-zA-Z]+"," ", line).lower().split()
+            for word in tokens:
+                if word not in self.stop_words:
+                    self.word_counter[word] += 1
+
         file.close
-
-        tokens = re.sub("[^0-9a-zA-Z]+"," ", text).lower().split()
-
-        for word in tokens:
-            self.word_counter[word] += 1
         
 
     def sort_words(self):
