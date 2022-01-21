@@ -9,9 +9,12 @@ import matplotlib.pyplot as plt
 
 
 class Test():
-    def __init__(self, fname="datasets/it_book.txt", epsilons=[0.0001, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5]):
+    def __init__(self, fname="datasets/it_book.txt", epsilons=[0.0001, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5], k=10):
         self.fname = fname
         self.epsilons = sorted(epsilons, reverse=True)
+
+        min_k = int(1 / max(epsilons))
+        self.k = min_k if k > min_k else k
 
         self.run_test()
 
@@ -58,20 +61,21 @@ class Test():
                 plot_data[1].append(exec_time)
 
                 relative_precision, right_position_words, TP = 0, 0, 0
-                exact_top_k_words = list(self.exact_top_k_words.keys())
-                top_words = counter.sort_words()
-                for i, word in enumerate(top_words):
-                    if word in self.exact_top_k_words:
+                top_words = counter.sort_words()[:self.k]
+                for i, word in enumerate(self.exact_top_k_words):
+                    if word in top_words:
                         TP += 1
-                    if word == exact_top_k_words[i]:
+                    if word == top_words[i]:
                         right_position_words += 1
                         relative_precision += right_position_words / (i + 1) 
-                avg_relative_precision = round(relative_precision / total_words * 100, 2)
-                FP = total_words - TP
-                TN = self.total_words - total_words - FP
-                precision = round(TP / total_words * 100, 2)
+                avg_relative_precision = round(relative_precision / self.k * 100, 2)
+                FP = self.k - TP
+                TN = self.total_words - self.k - FP
+                precision = round(TP / self.k * 100, 2)
+                # recall is equal to precision in this case since
+                # it is "retrieved" the same amount of words (k)
+                # therefore the denominator is the same
                 accuracy = round((TP + TN) / self.total_words * 100, 2)
-                # recall not appropriate since it is evaluated top n most frequent words
 
                 data[6].append(accuracy)
                 data[7].append(precision)
@@ -89,7 +93,7 @@ class Test():
             plt.legend()
             plt.show()
 
-            plt.plot(plot_data[0], plot_data[2], label="Accuracy (%)")
+            plt.plot(plot_data[0], plot_data[2], label="Accuracy (%)", linewidth=3)
             plt.plot(plot_data[0], plot_data[3], label="Precision (%)")
             plt.plot(plot_data[0], plot_data[4], label="Average Precision (%)")
             plt.ylabel("Percentage (%)")
@@ -102,7 +106,7 @@ class Test():
         tic = time.time()
         counter.count()
         exec_time = round(time.time() - tic, 3)
-        self.exact_top_k_words = counter.sort_words()
+        self.exact_top_k_words = counter.sort_words()[:self.k]
         self.total_words = len(counter.word_counter)
         total_events = sum(counter.word_counter.values())
         min_events = min(counter.word_counter.values())

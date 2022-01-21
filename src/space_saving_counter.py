@@ -42,5 +42,4 @@ class SpaceSavingCounter():
 
 
     def sort_words(self):
-        return {word: occur for word, occur in \
-            sorted(self.word_counter.items(), key=lambda x: x[1], reverse=True)}
+        return sorted(self.word_counter, key=lambda x: self.word_counter[x], reverse=True)
