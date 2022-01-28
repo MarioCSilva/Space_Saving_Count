@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 class Test():
-    def __init__(self, fname="datasets/it_book.txt", stop_words_fname="./stopwords.txt", epsilons=[0.0002, 0.0005, 0.0008, 0.001, 0.002], k=200):
+    def __init__(self, fname="datasets/en_bible.txt", stop_words_fname="./stopwords.txt", epsilons=[0.0002, 0.0005, 0.0008, 0.001, 0.002], k=200):
         self.fname = fname
         self.stop_words_fname = stop_words_fname
         self.epsilons = sorted(epsilons, reverse=True)
@@ -37,7 +37,7 @@ class Test():
             ["Minimum"], ["Maximum"]]
 
         if not exact_counter:
-            data.extend([["Accuracy"], ["Precision"], ["Average Precision"]])
+            data.extend([["Accuracy"], ["Precision"], ["Avg. Precision"]])
             for epsilon in self.epsilons:
                 counter.epsilon = epsilon
                 tic = time.time()
@@ -50,7 +50,7 @@ class Test():
                 max_events = max(counter.word_counter.values())
                 mean = calc_mean(counter.word_counter.values())
 
-                headers.append(f"Epsilon {epsilon}")
+                headers.append(f"ɛ {epsilon}")
                 data[0].append(exec_time)
                 data[1].append(total_words)
                 data[2].append(total_events)
